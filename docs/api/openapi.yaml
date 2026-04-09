@@ -1,0 +1,452 @@
+openapi: 3.0.3
+info:
+  title: GPT Protocol Node Sale API
+  version: 0.1.0
+  description: |
+    MVP API contract for admin and read-model services supporting the node sale platform.
+    Wallet signing and on-chain minting happen client-side via smart contracts; backend APIs
+    provide configuration, analytics, order indexing, and admin operations.
+servers:
+  - url: https://api.gptprotocol.org/v1
+    description: Production
+  - url: https://staging-api.gptprotocol.org/v1
+    description: Staging
+
+tags:
+  - name: Public
+  - name: Referral
+  - name: Orders
+  - name: AdminAuth
+  - name: AdminConfig
+  - name: AdminAnalytics
+
+paths:
+  /public/sale-config:
+    get:
+      tags: [Public]
+      summary: Get public sale configuration and active tier information
+      responses:
+        '200':
+          description: Sale config returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicSaleConfigResponse'
+
+  /public/quote:
+    post:
+      tags: [Public]
+      summary: Calculate quote for a potential purchase (off-chain pre-check)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteRequest'
+      responses:
+        '200':
+          description: Quote computed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteResponse'
+        '400':
+          description: Validation error
+
+  /referrals/validate:
+    post:
+      tags: [Referral]
+      summary: Validate referral code for delegate flow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [referralCode, walletAddress]
+              properties:
+                referralCode:
+                  type: string
+                walletAddress:
+                  type: string
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralValidationResponse'
+
+  /orders:
+    get:
+      tags: [Orders]
+      summary: Get indexed orders for connected user wallet
+      parameters:
+        - in: query
+          name: walletAddress
+          required: true
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20, minimum: 1, maximum: 100 }
+        - in: query
+          name: cursor
+          schema: { type: string }
+      responses:
+        '200':
+          description: User orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrdersResponse'
+
+  /admin/auth/login:
+    post:
+      tags: [AdminAuth]
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+                  refreshToken: { type: string }
+        '401':
+          description: Invalid credentials
+
+  /admin/tiers:
+    get:
+      tags: [AdminConfig]
+      security: [{ bearerAuth: [] }]
+      summary: List tiers
+      responses:
+        '200':
+          description: Tier list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tier'
+    post:
+      tags: [AdminConfig]
+      security: [{ bearerAuth: [] }]
+      summary: Create tier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TierUpsertRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tier'
+
+  /admin/tiers/{tierId}:
+    patch:
+      tags: [AdminConfig]
+      security: [{ bearerAuth: [] }]
+      summary: Update tier
+      parameters:
+        - in: path
+          name: tierId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TierUpsertRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tier'
+
+  /admin/config/blockchain:
+    get:
+      tags: [AdminConfig]
+      security: [{ bearerAuth: [] }]
+      summary: Get blockchain configuration
+      responses:
+        '200':
+          description: Config response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockchainConfig'
+    patch:
+      tags: [AdminConfig]
+      security: [{ bearerAuth: [] }]
+      summary: Update blockchain configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlockchainConfig'
+      responses:
+        '200':
+          description: Updated
+
+  /admin/config/commissions:
+    patch:
+      tags: [AdminConfig]
+      security: [{ bearerAuth: [] }]
+      summary: Update referral discount and commission percentages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [referredDiscountPct, referrerCommissionPct]
+              properties:
+                referredDiscountPct: { type: number, minimum: 0, maximum: 100 }
+                referrerCommissionPct: { type: number, minimum: 0, maximum: 100 }
+      responses:
+        '200':
+          description: Updated
+
+  /admin/orders:
+    get:
+      tags: [AdminAnalytics]
+      security: [{ bearerAuth: [] }]
+      summary: Get orders with filters
+      parameters:
+        - in: query
+          name: referralCode
+          schema: { type: string }
+        - in: query
+          name: dateFrom
+          schema: { type: string, format: date-time }
+        - in: query
+          name: dateTo
+          schema: { type: string, format: date-time }
+        - in: query
+          name: quantityMin
+          schema: { type: integer }
+        - in: query
+          name: quantityMax
+          schema: { type: integer }
+        - in: query
+          name: totalAmountMin
+          schema: { type: number }
+        - in: query
+          name: totalAmountMax
+          schema: { type: number }
+        - in: query
+          name: token
+          schema: { type: string, enum: [ETH, USDT, USDC, GPT] }
+        - in: query
+          name: nodeType
+          schema: { type: string, enum: [DELEGATE, DA] }
+        - in: query
+          name: status
+          schema: { type: string, enum: [PENDING, CONFIRMED, FAILED] }
+      responses:
+        '200':
+          description: Filtered orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrdersResponse'
+
+  /admin/analytics/summary:
+    get:
+      tags: [AdminAnalytics]
+      security: [{ bearerAuth: [] }]
+      summary: Dashboard summary metrics
+      responses:
+        '200':
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsSummary'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    PublicSaleConfigResponse:
+      type: object
+      properties:
+        baseCurrency:
+          type: string
+          example: USD
+        paymentTokens:
+          type: array
+          items:
+            type: string
+            enum: [ETH, USDT, USDC, GPT]
+        activeDelegateTier:
+          $ref: '#/components/schemas/Tier'
+        daSale:
+          $ref: '#/components/schemas/DaSaleConfig'
+        limits:
+          type: object
+          properties:
+            delegatePerWalletCap: { type: integer }
+            daPerWalletCap: { type: integer }
+        referral:
+          type: object
+          properties:
+            delegateDiscountPct: { type: number }
+            referrerCommissionPct: { type: number }
+
+    DaSaleConfig:
+      type: object
+      properties:
+        unitPriceUsd: { type: number }
+        totalLicenses: { type: integer }
+        soldLicenses: { type: integer }
+        remainingLicenses: { type: integer }
+        contractAddress: { type: string }
+
+    Tier:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [DELEGATE, DA] }
+        tierNumber: { type: integer, nullable: true }
+        status:
+          type: string
+          enum: [DRAFT, READY_TO_GO_LIVE, LIVE, IN_PROGRESS, COMPLETED, INACTIVE]
+        unitPriceUsd: { type: number }
+        totalLicenses: { type: integer }
+        soldLicenses: { type: integer }
+        remainingLicenses: { type: integer }
+        contractAddress: { type: string }
+
+    TierUpsertRequest:
+      type: object
+      required: [type, unitPriceUsd, totalLicenses]
+      properties:
+        type: { type: string, enum: [DELEGATE, DA] }
+        tierNumber: { type: integer, nullable: true }
+        status:
+          type: string
+          enum: [DRAFT, READY_TO_GO_LIVE, LIVE, IN_PROGRESS, COMPLETED, INACTIVE]
+        unitPriceUsd: { type: number }
+        totalLicenses: { type: integer }
+        contractAddress: { type: string }
+
+    QuoteRequest:
+      type: object
+      required: [walletAddress, nodeType, quantity, paymentToken]
+      properties:
+        walletAddress: { type: string }
+        nodeType: { type: string, enum: [DELEGATE, DA] }
+        quantity: { type: integer, minimum: 1 }
+        paymentToken: { type: string, enum: [ETH, USDT, USDC, GPT] }
+        referralCode: { type: string, nullable: true }
+
+    QuoteResponse:
+      type: object
+      properties:
+        valid: { type: boolean }
+        reasons:
+          type: array
+          items: { type: string }
+        pricing:
+          type: object
+          properties:
+            unitPriceUsd: { type: number }
+            subtotalUsd: { type: number }
+            discountUsd: { type: number }
+            totalUsd: { type: number }
+            tokenAmount: { type: string }
+            tokenSymbol: { type: string }
+
+    ReferralValidationResponse:
+      type: object
+      properties:
+        valid: { type: boolean }
+        active: { type: boolean }
+        ownerWallet: { type: string, nullable: true }
+        discountPct: { type: number, nullable: true }
+        reason: { type: string, nullable: true }
+
+    Order:
+      type: object
+      properties:
+        orderId: { type: string }
+        walletAddress: { type: string }
+        nodeType: { type: string, enum: [DELEGATE, DA] }
+        tierNumber: { type: integer, nullable: true }
+        quantity: { type: integer }
+        paymentToken: { type: string, enum: [ETH, USDT, USDC, GPT] }
+        totalUsd: { type: number }
+        referralCode: { type: string, nullable: true }
+        txHash: { type: string }
+        status: { type: string, enum: [PENDING, CONFIRMED, FAILED] }
+        createdAt: { type: string, format: date-time }
+
+    PaginatedOrdersResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+        nextCursor: { type: string, nullable: true }
+
+    BlockchainConfig:
+      type: object
+      properties:
+        chainId: { type: integer }
+        rpcUrl: { type: string }
+        paymentRpcUrl: { type: string }
+        centralStoreAddress: { type: string }
+        daContractAddress: { type: string }
+        activeDelegateContractAddress: { type: string }
+        usdtTokenAddress: { type: string }
+        usdcTokenAddress: { type: string }
+        gptTokenAddress: { type: string }
+
+    AnalyticsSummary:
+      type: object
+      properties:
+        grossSalesUsd: { type: number }
+        totalOrders: { type: integer }
+        totalLicensesSold: { type: integer }
+        referralUsageRate: { type: number }
+        topReferrers:
+          type: array
+          items:
+            type: object
+            properties:
+              walletAddress: { type: string }
+              totalCommissionUsd: { type: number }
+        mostUsedReferralCodes:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              uses: { type: integer }
