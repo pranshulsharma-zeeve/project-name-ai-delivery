@@ -16,6 +16,7 @@
 | BUY-05 | P0 | DA purchase without referral | DA tab has no referral benefit; purchase succeeds for valid input. |
 | BUY-06 | P0 | Transaction state clarity | User sees clear statuses: awaiting signature, submitted, confirmed, failed. |
 | BUY-07 | P1 | Explorer links | Success/pending modals include valid explorer links. |
+| BUY-08 | P0 | Wrong-network handling | Purchase actions are blocked on unsupported chain and user is prompted to switch network. |
 
 ## 2) Referral Acceptance
 
@@ -45,6 +46,8 @@
 | ADM-03 | P0 | Configure blockchain values | Chain/RPC/contract/token config can be updated and validated. |
 | ADM-04 | P0 | Orders filter | Admin can filter orders by referral/date/qty/amount/token/status. |
 | ADM-05 | P1 | Dashboard metrics | Summary metrics align with indexed order/referral data. |
+| ADM-06 | P0 | Referral activeness control | Admin can activate/deactivate referral code and change is reflected in validation behavior. |
+| ADM-07 | P0 | User blacklist control | Admin can blacklist/whitelist wallet; blacklisted users are prevented from purchases/referral generation. |
 
 ## 5) Smart Contract and Chain Safety Acceptance
 
@@ -63,6 +66,7 @@
 | OPS-01 | P0 | Reconciliation baseline | Indexed orders reconcile against chain events within agreed tolerance. |
 | OPS-02 | P1 | Monitoring readiness | Alerts configured for API errors, indexing lag, and tx failure spikes. |
 | OPS-03 | P1 | Export support | Filtered order exports (CSV) are correct and usable by ops/finance. |
+| OPS-04 | P1 | Setup prerequisites complete | Contract/RPC/explorer/env settings are documented and configured before UAT sign-off. |
 
 ## 7) Launch Exit Criteria
 - All **P0** cases pass in staging.

@@ -18,6 +18,7 @@ tags:
   - name: Orders
   - name: AdminAuth
   - name: AdminConfig
+  - name: AdminControls
   - name: AdminAnalytics
 
 paths:
@@ -32,6 +33,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicSaleConfigResponse'
+
+  /public/network-config:
+    get:
+      tags: [Public]
+      summary: Get chain and explorer metadata required by wallet UI
+      responses:
+        '200':
+          description: Network config returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chainId: { type: integer }
+                  chainName: { type: string }
+                  rpcUrl: { type: string }
+                  explorerBaseUrl: { type: string }
 
   /public/quote:
     post:
@@ -76,6 +94,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReferralValidationResponse'
+
+  /referrals/check-availability:
+    post:
+      tags: [Referral]
+      summary: Check if a referral code candidate is available before on-chain submit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [referralCode]
+              properties:
+                referralCode:
+                  type: string
+      responses:
+        '200':
+          description: Availability result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available: { type: boolean }
+                  reason: { type: string, nullable: true }
 
   /orders:
     get:
@@ -228,6 +271,24 @@ paths:
         '200':
           description: Updated
 
+  /admin/config/gpt-rate:
+    patch:
+      tags: [AdminConfig]
+      security: [{ bearerAuth: [] }]
+      summary: Update GPT tokens in one USD conversion parameter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [gptTokensInOneUsd]
+              properties:
+                gptTokensInOneUsd: { type: string, description: Big number string }
+      responses:
+        '200':
+          description: Updated
+
   /admin/orders:
     get:
       tags: [AdminAnalytics]
@@ -271,6 +332,72 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedOrdersResponse'
+
+  /admin/orders/{orderId}:
+    get:
+      tags: [AdminAnalytics]
+      security: [{ bearerAuth: [] }]
+      summary: Get a single indexed order detail
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Order detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Not found
+
+  /admin/referrals/{code}/activeness:
+    patch:
+      tags: [AdminControls]
+      security: [{ bearerAuth: [] }]
+      summary: Activate or deactivate a referral code
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [isActive]
+              properties:
+                isActive: { type: boolean }
+      responses:
+        '200':
+          description: Updated
+
+  /admin/users/{walletAddress}/blacklist:
+    patch:
+      tags: [AdminControls]
+      security: [{ bearerAuth: [] }]
+      summary: Update blacklist status for a user wallet
+      parameters:
+        - in: path
+          name: walletAddress
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [blacklisted]
+              properties:
+                blacklisted: { type: boolean }
+      responses:
+        '200':
+          description: Updated
 
   /admin/analytics/summary:
     get:

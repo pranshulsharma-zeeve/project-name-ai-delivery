@@ -38,6 +38,7 @@
 - Inputs: default / focus / error / disabled
 - Wallet state: disconnected / connecting / connected / wrong-network
 - Transaction state: awaiting-signature / submitted / confirmed / failed
+- Eligibility state: eligible / sold-out / cap-reached / blacklisted
 
 ## 6) UX Copy Guidelines
 - Keep user prompts short and actionable.
@@ -49,9 +50,17 @@
 - Submit CTA: `Pay Now`
 - Pending: `Transaction submitted. Waiting for blockchain confirmation...`
 - Success: `You have successfully purchased {quantity} Licence(s).`
+- Wrong network: `Unsupported network. Please switch to the configured chain to continue.`
+- Sold out: `Current tier is sold out. Please wait for the next tier to go live.`
 
 ## 7) Accessibility Basics
 - Minimum color contrast AA for text and controls
 - Keyboard navigable forms and modal actions
 - Visible focus styles
 - Error messages tied to form fields
+
+## 8) Formatting Standards (MVP)
+- USD display: `$1,234.56`
+- Token amounts: up to 6 decimals in UI (full precision in backend/contract values)
+- Wallet display: truncate as `0x12ab...90ef`
+- Date-time display for admin tables: ISO in API, localized in UI

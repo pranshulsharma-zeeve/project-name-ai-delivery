@@ -61,3 +61,13 @@ flowchart LR
 - **Dev:** rapid integration and contract iteration.
 - **Staging:** production-like chain/config validation.
 - **Production:** audited contracts, monitored indexer, operational runbook active.
+
+## 8) Setup Prerequisites (Foundation)
+Before implementation starts, teams should confirm:
+1. Contract addresses and token addresses per environment.
+2. RPC and fallback RPC endpoints for each environment.
+3. Explorer base URLs per environment.
+4. Admin bootstrap credentials and RBAC model.
+5. Event indexer starting block and reorg handling policy.
+6. Environment variable contract (frontend + backend + workers).
+7. Monitoring/alert destinations (Slack/PagerDuty/email).

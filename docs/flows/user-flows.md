@@ -13,6 +13,18 @@ flowchart TD
   G -- Yes --> I[Show connected address + enable purchase]
 ```
 
+## 1.1) Wrong Network Handling Flow
+```mermaid
+flowchart TD
+  A[Wallet connected] --> B{Supported chain?}
+  B -- Yes --> C[Proceed with purchase]
+  B -- No --> D[Show wrong network banner]
+  D --> E[Prompt switch network in wallet]
+  E --> F{Switch successful?}
+  F -- Yes --> C
+  F -- No --> G[Keep purchase disabled and show guidance]
+```
+
 ## 2) Delegate Purchase Flow (with optional referral)
 ```mermaid
 flowchart TD
@@ -66,16 +78,31 @@ flowchart TD
   E --> F[Verify public page tier + availability]
 ```
 
-## 6) Admin Orders Investigation Flow
+## 6) Admin Referral and Blacklist Control Flow
+```mermaid
+flowchart TD
+  A[Admin login] --> B[Open Referral/User Controls]
+  B --> C[Search wallet or referral code]
+  C --> D{Action type}
+  D -- Toggle referral activeness --> E[Set active/inactive]
+  D -- Blacklist/whitelist user --> F[Set user status]
+  E --> G[Persist + log audit entry]
+  F --> G
+  G --> H[Verify effect on quote/purchase eligibility]
+```
+
+## 7) Admin Orders Investigation Flow
 1. Open Orders module.
 2. Apply filters (referral/date/qty/amount/token/status).
 3. Inspect order details (wallet, tx hash, node type, quantity).
 4. Cross-check explorer if status mismatch exists.
 5. Export CSV for support/finance follow-up.
 
-## 7) Critical Edge Cases
+## 8) Critical Edge Cases
 - User tries to buy above wallet cap.
 - Tier inventory depleted between quote and submit.
 - ERC20 allowance insufficient after user changes quantity.
 - User enters inactive referral code.
 - RPC latency causes delayed confirmation in UI.
+- User wallet is connected to unsupported chain.
+- User is blacklisted after quote but before transaction submit.
