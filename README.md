@@ -10,3 +10,13 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Backend
+Backend service foundation now lives in `backend/`.
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+npm run dev
+```
