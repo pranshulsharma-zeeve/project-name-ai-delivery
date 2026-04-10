@@ -71,3 +71,9 @@ Before implementation starts, teams should confirm:
 5. Event indexer starting block and reorg handling policy.
 6. Environment variable contract (frontend + backend + workers).
 7. Monitoring/alert destinations (Slack/PagerDuty/email).
+
+## 9) Frontend Foundation Baseline (Epic E1)
+- Frontend workspace is rooted at `frontend/` using Next.js App Router.
+- Shared design tokens are defined in `frontend/src/styles/tokens.css` and imported globally.
+- Buyer app shell currently includes a wallet header scaffold and purchase module placeholder to de-risk early integration.
+- Baseline quality gates for frontend foundation include `npm run lint`, `npm run test`, and `npm run build`.
