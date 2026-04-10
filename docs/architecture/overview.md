@@ -77,3 +77,11 @@ Before implementation starts, teams should confirm:
 - Shared design tokens are defined in `frontend/src/styles/tokens.css` and imported globally.
 - Buyer app shell currently includes a wallet header scaffold and purchase module placeholder to de-risk early integration.
 - Baseline quality gates for frontend foundation include `npm run lint`, `npm run test`, and `npm run build`.
+
+
+## 10) Backend Foundation Baseline (Epic E2)
+- Backend workspace is rooted at `backend/` with a TypeScript + Express service scaffold.
+- API modules are split by capability (`health`, `auth`, `contracts`) to keep public/admin boundaries explicit from day one.
+- Contract integrations are isolated behind a chain adapter interface so read/write implementations remain testable and replaceable.
+- Observability hooks include structured request logging and dedicated liveness/readiness endpoints for platform monitoring.
+- Baseline quality gates for backend foundation include `npm run lint`, `npm run test`, and `npm run build` from `backend/`.
